@@ -1,193 +1,535 @@
-![Mountain Track Demo](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/Mountain_Track.gif)
+# 🚗 Autonomous Navigation Using Deep Reinforcement Learning
+### Vision-Based Driving with CNN + PPO Actor-Critic
 
-# Autonomous Driving Using Deep Reinforcement Learning  
-A complete end-to-end DRL system for lane-following in the DonkeyCar simulator.
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=22&duration=3000&pause=900&color=60A5FA&center=true&vCenter=true&width=850&lines=Teaching+Machines+to+Navigate+Autonomously;CNN-Based+Visual+Perception;Proximal+Policy+Optimization;Learning+Steering+%26+Throttle+Through+Experience" alt="Typing SVG" />
+</p>
 
----
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" />
+  <img src="https://img.shields.io/badge/PPO-6C3483?style=for-the-badge&logoColor=white" />
+  <img src="https://img.shields.io/badge/Deep%20Reinforcement%20Learning-1E3A8A?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Computer%20Vision-0891B2?style=for-the-badge" />
+</p>
 
-# Objective
+<p align="center">
+  <b>An autonomous driving agent that learns steering and throttle control directly from RGB camera observations using a CNN-based Proximal Policy Optimization (PPO) Actor-Critic architecture.</b>
+</p>
 
-The objective of this project is to train an autonomous vehicle to navigate a simulated environment by following lanes, maintaining stability, and controlling speed using Deep Reinforcement Learning (DRL).  
-The agent learns directly from raw RGB camera images, which are processed using a CNN-based policy trained with Proximal Policy Optimization (PPO) in the gym-donkeycar environment.
-
----
-
-# Approach
-
-The development of the final driving agent followed a structured multi-stage approach.
-
-## 1. Reinforcement Learning Fundamentals  
-Before moving to a vision-based DRL setup, foundational RL algorithms were implemented and studied in detail.  
-This included value iteration, policy iteration, Monte Carlo methods, Temporal-Difference learning (SARSA, Q-learning), and exploration strategies.  
-These were implemented in environments like FrozenLake and MiniGrid to build intuition about agent learning and policy behavior.
-
-![Classical RL tasks](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/frozen_lake.gif)
-
----
-
-## 2. Neural Network and Deep Learning Foundations  
-To prepare for working with image-based inputs, neural networks were implemented from scratch using NumPy (forward and backward propagation), followed by CNNs and deep learning models in TensorFlow.  
-This provided the necessary understanding of spatial feature extraction, which is essential for lane detection and driving behavior.
+<p align="center">
+  <a href="#-overview">Overview</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-learning-agent">Learning Agent</a> •
+  <a href="#-training">Training</a> •
+  <a href="#-results">Results</a> •
+  <a href="#-setup">Setup</a>
+</p>
 
 ---
 
-## 3. Transition to Deep Reinforcement Learning  
-After developing the basics, policy-gradient algorithms and Actor-Critic methods were studied.  
-This formed the theoretical backbone for implementing PPO and understanding why it is well suited for continuous control.
+## `~/overview` — Project Introduction
 
-![Policy Gradient diagram](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/policy_gradient.jpg)
+Autonomous driving requires an intelligent system to perceive its surroundings, understand the current driving situation, and make continuous control decisions.
 
----
+Traditional approaches often depend on manually designed rules and predefined driving strategies. This project explores a different approach: allowing an agent to learn driving behavior through interaction with a simulated environment.
 
-## 4. Building the Autonomous Driving Agent  
-The final model integrates three core components:
+The system uses **Deep Reinforcement Learning (DRL)** to train an autonomous driving agent that processes raw RGB camera observations and learns to control steering and throttle.
 
-- DonkeyCar simulator for environment interaction  
-- CNN feature extractor for visual observations  
-- PPO-based Actor-Critic architecture for action selection and value estimation  
+A CNN extracts visual features from camera frames, while a PPO-based Actor-Critic architecture learns a policy for selecting driving actions.
 
-The agent learns to control steering and throttle using feedback from a reward function designed to encourage stable, centered driving.
+### Project Highlights
 
-![Driving pipeline diagram](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/driving_pipeline.png)
+| Component | Implementation |
+|---|---|
+| Learning approach | Deep Reinforcement Learning |
+| Algorithm | Proximal Policy Optimization (PPO) |
+| Policy architecture | Actor-Critic |
+| Visual perception | Convolutional Neural Network |
+| Input | Raw RGB camera observations |
+| Control outputs | Steering and throttle |
+| Reward objectives | Lane-centering, speed regulation, collision avoidance |
+| Evaluation | Multiple track configurations |
+| Generalization | Mountain-track scenario evaluation |
+| Framework | Python, PyTorch |
 
----
+### Key Objective
 
-# Environment: gym-donkeycar
-
-### Action Space (Continuous)
-
-| Action    | Range     |
-|-----------|-----------|
-| Steering  | -5 to +5  |
-| Throttle  | 0 to 1    |
-
-### Observation Space  
-- 120×160 RGB camera frame  
-- Contains road edges, curvature, and background context  
-- Used as direct input to the CNN network  
-
-![CAMERA FRAME](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/camera_view.png)
-
-### Reward Function  
-The reward encourages smooth and safe driving:
-
-- Strong penalties for collisions  
-- Penalties for going off-track (max cross-track error reached)  
-- Positive reward proportional to centeredness and forward velocity  
-
-This motivates the agent to balance both lateral stability and speed.
-
-![Reward function chart](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/reward_fn.png)
+Develop an autonomous driving agent capable of learning navigation behavior from visual observations rather than relying entirely on manually programmed driving rules.
 
 ---
 
-# Proximal Policy Optimization (PPO)
+## `~/architecture` — System Architecture
 
-PPO is the reinforcement learning algorithm used to train the driving agent.  
-It is well suited for continuous control problems like steering and throttle regulation.
+The project follows a perception-to-action learning pipeline.
 
-PPO follows an Actor-Critic design:
+```mermaid
+flowchart TD
+    ENV["Driving Simulation Environment"]
+    CAMERA["RGB Camera Observation"]
+    PRE["Image Preprocessing"]
+    CNN["CNN Feature Extractor"]
 
-### Actor
-- Receives CNN features  
-- Outputs continuous steering and throttle  
-- Represents the policy that selects actions
+    subgraph PPO["PPO Actor-Critic Agent"]
+        ACTOR["Actor Network"]
+        CRITIC["Critic Network"]
+    end
 
-### Critic
-- Estimates the value of the current state  
-- Helps guide policy updates through advantage estimation  
+    ACTION["Steering + Throttle"]
+    REWARD["Reward Calculation"]
+    UPDATE["PPO Policy Update"]
 
----
+    ENV --> CAMERA
+    CAMERA --> PRE
+    PRE --> CNN
+    CNN --> ACTOR
+    CNN --> CRITIC
 
-## Why PPO Works Well for Driving
+    ACTOR --> ACTION
+    ACTION --> ENV
 
-Driving requires stable, incremental learning because sudden policy changes lead to crashes or inconsistent behavior.  
-PPO addresses this through three main ideas:
+    ENV --> REWARD
+    REWARD --> UPDATE
+    CRITIC --> UPDATE
+    UPDATE --> ACTOR
+    UPDATE --> CRITIC
 
-### 1. Clipped Objective  
-PPO restricts how much the new policy can deviate from the old policy during updates.  
-This prevents unstable jumps in behavior and keeps training controlled and reliable.
+    classDef environment fill:#172554,stroke:#60A5FA,color:#EFF6FF
+    classDef perception fill:#164E63,stroke:#22D3EE,color:#ECFEFF
+    classDef learning fill:#312E81,stroke:#A78BFA,color:#F5F3FF
+    classDef control fill:#78350F,stroke:#F59E0B,color:#FFFBEB
 
-### 2. Efficient Advantage Estimation  
-Generalized Advantage Estimation (GAE) is used to compute how much better a chosen action was compared to expected performance.  
-This results in smoother and more informative updates.
+    class ENV,CAMERA environment
+    class PRE,CNN perception
+    class ACTOR,CRITIC,UPDATE learning
+    class ACTION,REWARD control
+```
 
-### 3. Sample Efficiency  
-PPO reuses collected experiences multiple times via mini-batch optimization, making training more efficient while preserving stability.
+### Component Responsibilities
 
----
-
-## Summary of PPO in This Project  
-- CNN extracts lane-related features from camera frames  
-- Actor outputs continuous control commands  
-- Critic estimates long-term future reward  
-- PPO updates the policy gradually using clipped ratios  
-- Training remains stable across thousands of steps  
-
-This combination allows the agent to learn consistent and robust driving behavior from visual input alone.
-
----
-
-# Algorithm Pipeline (Step-by-Step)
-
-1. Capture camera frame  
-2. Preprocess and pass through CNN  
-3. Extract features  
-4. Actor produces steering and throttle  
-5. Environment applies the action  
-6. Reward and next state are returned  
-7. Transition stored in rollout buffer  
-8. PPO performs policy and value updates  
-9. Loop continues across many timesteps  
-
-![ALGO PIPELINE](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/algo_pipeline.png)
+| Component | Responsibility |
+|---|---|
+| Simulation environment | Provides driving scenarios and vehicle interaction |
+| RGB camera | Captures visual observations |
+| Preprocessing | Prepares camera frames for neural network input |
+| CNN | Extracts useful visual representations |
+| Actor | Learns the driving policy |
+| Critic | Estimates the value of the current state |
+| PPO | Updates the policy using collected experience |
+| Reward function | Encourages desirable driving behavior |
 
 ---
 
-# Training and Results
+## `~/visual_perception` — Learning from Camera Images
 
-### Learning Progress  
-- Early stages: frequent off-track events  
-- Mid training: better lane centering, improved curvature handling  
-- Final stages: smooth lane-following with stable throttle control  
+Instead of relying only on manually supplied driving instructions, the agent receives visual information from its camera.
 
-![Generated Road Final](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/DonkeyCar2.gif)
+The CNN acts as the perception component of the learning system.
 
-### Mountain Track Generalization  
-A more challenging test track with sharp turns and elevation.  
-The trained agent adapts and navigates reliably after extended training.
+### Visual Perception Pipeline
 
-![Mountain Track Demo](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/Mountain_Track.gif)
-![Mountain Track Graph](https://raw.githubusercontent.com/tahamm786/Autonomous-Car-Driving-using-Deep-RL/main/Media/mountain_track_rewards.png)
+```mermaid
+flowchart LR
+    A["RGB Camera Frame"] --> B["Image Preprocessing"]
+    B --> C["CNN"]
+    C --> D["Visual Feature Representation"]
+    D --> E["Actor-Critic Network"]
+    E --> F["Driving Decision"]
+
+    classDef input fill:#172554,stroke:#60A5FA,color:#EFF6FF
+    classDef vision fill:#164E63,stroke:#22D3EE,color:#ECFEFF
+    classDef decision fill:#312E81,stroke:#A78BFA,color:#F5F3FF
+
+    class A,B input
+    class C,D vision
+    class E,F decision
+```
+
+The CNN learns visual representations that help the policy make driving decisions.
+
+These representations can help the agent learn patterns associated with:
+
+- Road and lane positioning.
+- Visual driving conditions.
+- Track geometry.
+- Navigation-relevant scene information.
+
+*The exact CNN layer configuration and image dimensions should be documented from the implemented model.*
+
+---
+
+## `~/learning_agent` — PPO Actor-Critic
+
+The learning agent uses **Proximal Policy Optimization (PPO)**, a policy-gradient reinforcement learning algorithm.
+
+PPO is designed to improve policy learning while restricting excessively large policy updates.
+
+### Actor Network
+
+The Actor learns the driving policy.
+
+It uses the visual representation to determine the control action, including steering and throttle.
+
+### Critic Network
+
+The Critic estimates how valuable the current state is under the learned policy.
+
+Its value estimation helps calculate the advantage used during policy optimization.
+
+### Actor-Critic Relationship
+
+```mermaid
+flowchart TD
+    OBS["Visual Observation"]
+    FEATURES["CNN Feature Extraction"]
+
+    OBS --> FEATURES
+
+    FEATURES --> ACTOR["Actor"]
+    FEATURES --> CRITIC["Critic"]
+
+    ACTOR --> POLICY["Driving Policy"]
+    POLICY --> CONTROL["Steering and Throttle"]
+
+    CRITIC --> VALUE["State Value Estimate"]
+
+    CONTROL --> ENV["Environment Interaction"]
+    ENV --> REWARD["Reward and Next Observation"]
+
+    REWARD --> ADV["Advantage Estimation"]
+    VALUE --> ADV
+
+    ADV --> PPO["PPO Optimization"]
+    PPO --> ACTOR
+    PPO --> CRITIC
+
+    classDef perception fill:#164E63,stroke:#22D3EE,color:#ECFEFF
+    classDef network fill:#312E81,stroke:#A78BFA,color:#F5F3FF
+    classDef action fill:#78350F,stroke:#F59E0B,color:#FFFBEB
+
+    class OBS,FEATURES perception
+    class ACTOR,CRITIC,VALUE,ADV,PPO network
+    class POLICY,CONTROL,ENV,REWARD action
+```
+
+### Why PPO?
+
+- Uses policy-gradient learning.
+- Employs a clipped objective to limit excessively large policy updates.
+- Uses an Actor-Critic structure.
+- Supports learning continuous control policies.
+- Can learn through repeated interaction with a simulation environment.
 
 ---
 
-# Project Outcomes
+## `~/control_system` — Steering and Throttle
 
-The trained agent successfully:
+The agent learns to control vehicle movement through its policy.
 
-- Maintains lane position  
-- Controls speed effectively  
-- Completes full laps without intervention  
-- Learns solely from raw camera input  
-- Uses PPO for stable and robust continuous control  
+| Control | Purpose |
+|---|---|
+| Steering | Controls the vehicle's turning direction |
+| Throttle | Controls vehicle acceleration |
 
----
+The objective is not simply to move forward. The agent must learn how its actions affect the vehicle's position and driving behavior over time.
 
-# Trained Models and Video Results
-
-https://drive.google.com/drive/folders/1XSjvIME7LpQvYnJbaveoxq4y3vlnoDG8?usp=drive_link
+The learned policy is evaluated across different track configurations.
 
 ---
 
-# Real-World Use Cases
+## `~/reward_design` — Driving Objectives
 
-- **Autonomous Vehicles:** Lane-following, speed control, and safe navigation using camera-based policies.  
-- **Robotics:** Path planning and real-time control for mobile robots in warehouses and factories.  
-- **Smart Transportation:** Traffic optimization, adaptive cruise systems, and intelligent lane assistance.  
-- **Sim-to-Real Transfer:** Safe training in simulators before deploying in physical environments.  
-- **Drones:** Stable autonomous flight, navigation, and environment-aware control.  
-- **ADAS Systems:** Vision-based alerts, steering assistance, and driver-support features.  
-- **Research & Education:** Benchmarking RL algorithms and studying vision-based continuous control.
+Reinforcement learning depends on a reward signal that guides the agent toward desirable behavior.
+
+This project incorporates reward objectives associated with:
+
+| Objective | Learning purpose |
+|---|---|
+| Lane-centering | Encourage maintaining a suitable lane position |
+| Speed regulation | Encourage appropriate vehicle speed |
+| Collision avoidance | Discourage unsafe interactions |
+| Navigation progress | Encourage forward movement through the track |
+
+### Learning Loop
+
+```mermaid
+flowchart TD
+    A["Observe Camera Frame"] --> B["Extract Visual Features"]
+    B --> C["Select Driving Action"]
+    C --> D["Execute Action"]
+    D --> E["Receive Reward"]
+    E --> F["Store Experience"]
+    F --> G["Calculate Advantage"]
+    G --> H["Update Actor-Critic with PPO"]
+    H --> A
+
+    classDef observation fill:#164E63,stroke:#22D3EE,color:#ECFEFF
+    classDef learning fill:#312E81,stroke:#A78BFA,color:#F5F3FF
+    classDef feedback fill:#78350F,stroke:#F59E0B,color:#FFFBEB
+
+    class A,B observation
+    class C,D,F,G,H learning
+    class E feedback
+```
+
+The reward function influences what the agent learns. Its exact numerical weights and termination conditions should be taken from the training implementation.
 
 ---
+
+## `~/training` — Training and Evaluation
+
+The agent learns by repeatedly interacting with the driving simulation.
+
+### Training Workflow
+
+1. Initialize the simulation environment.
+2. Capture an RGB camera observation.
+3. Process the observation through the CNN.
+4. Generate driving actions using the Actor.
+5. Estimate state value using the Critic.
+6. Execute the selected control actions.
+7. Collect reward and subsequent observations.
+8. Use collected experience for PPO optimization.
+9. Evaluate the learned policy on different track configurations.
+
+### Training Pipeline
+
+```mermaid
+flowchart TD
+    INIT["Initialize Environment and Agent"]
+    RESET["Reset Simulation"]
+    OBS["Capture RGB Observation"]
+    CNN["CNN Feature Extraction"]
+    POLICY["Actor-Critic Inference"]
+    ACTION["Steering and Throttle"]
+    STEP["Environment Step"]
+    EXPERIENCE["Collect Experience"]
+    PPO["PPO Policy Optimization"]
+    CHECK{"Episode Complete?"}
+    EVAL["Evaluate Trained Agent"]
+
+    INIT --> RESET
+    RESET --> OBS
+    OBS --> CNN
+    CNN --> POLICY
+    POLICY --> ACTION
+    ACTION --> STEP
+    STEP --> EXPERIENCE
+    EXPERIENCE --> PPO
+    PPO --> CHECK
+    CHECK -->|No| OBS
+    CHECK -->|Yes| EVAL
+
+    classDef setup fill:#172554,stroke:#60A5FA,color:#EFF6FF
+    classDef perception fill:#164E63,stroke:#22D3EE,color:#ECFEFF
+    classDef learning fill:#312E81,stroke:#A78BFA,color:#F5F3FF
+    classDef evaluation fill:#14532D,stroke:#4ADE80,color:#F0FDF4
+
+    class INIT,RESET setup
+    class OBS,CNN perception
+    class POLICY,ACTION,STEP,EXPERIENCE,PPO learning
+    class CHECK,EVAL evaluation
+```
+
+### Evaluation Scenarios
+
+The agent was trained and evaluated across multiple track configurations.
+
+The project specifically explored:
+
+- Learning lane-following behavior.
+- Regulating vehicle speed.
+- Avoiding collisions.
+- Testing navigation on different track layouts.
+- Evaluating generalization to a mountain-track scenario.
+
+---
+
+## `~/results` — Observed Outcomes
+
+The project demonstrated:
+
+- End-to-end visual control using RGB camera input.
+- CNN-based feature extraction for driving decisions.
+- PPO Actor-Critic policy learning.
+- Steering and throttle control through reinforcement learning.
+- Full-lap navigation in simulation.
+- Generalization to a mountain-track scenario.
+
+### Outcome Summary
+
+| Evaluation Area | Reported Outcome |
+|---|---|
+| Visual input | Raw RGB camera observations |
+| Learning algorithm | CNN-based PPO Actor-Critic |
+| Vehicle controls | Steering and throttle |
+| Lane behavior | Lane-centering reward objective |
+| Safety behavior | Collision-avoidance reward objective |
+| Navigation | Full-lap navigation achieved |
+| Generalization | Mountain-track scenario |
+
+*Quantitative success rates, collision counts, lap times, and training curves are not included here because verified numerical measurements were not available in the project summary.*
+
+---
+
+## `~/technology` — Technology Stack
+
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=python,pytorch,opencv,git,github" />
+</p>
+
+| Category | Technology |
+|---|---|
+| Programming Language | Python |
+| Deep Learning | PyTorch |
+| Computer Vision | CNN |
+| Reinforcement Learning | Proximal Policy Optimization |
+| Neural Architecture | Actor-Critic |
+| Input Modality | RGB Camera Images |
+| Control | Steering and Throttle |
+| Development | Git, GitHub |
+
+---
+
+## `~/engineering_decisions` — Design Rationale
+
+| Design Choice | Reason |
+|---|---|
+| CNN-based perception | Extract visual features from camera images |
+| PPO | Learn a policy through stable, constrained policy updates |
+| Actor-Critic | Separate policy generation and value estimation |
+| RGB observations | Learn directly from visual information |
+| Reward-based training | Encourage lane-centering, speed regulation, and collision avoidance |
+| Multiple track configurations | Evaluate behavior beyond a single track |
+
+---
+
+## `~/setup` — Getting Started
+
+The exact simulation framework, folder structure, dependency versions, and training scripts should be matched to the repository before publishing executable setup instructions.
+
+### Prerequisites
+
+- Python
+- PyTorch
+- Required simulation environment
+- Git
+
+### 01 / Clone the Repository
+
+```bash
+git clone <YOUR_REPOSITORY_URL>
+cd <YOUR_REPOSITORY_DIRECTORY>
+```
+
+### 02 / Create a Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+Linux / macOS:
+
+```bash
+source venv/bin/activate
+```
+
+### 03 / Install Dependencies
+
+If the repository contains a `requirements.txt` file:
+
+```bash
+pip install -r requirements.txt
+```
+
+Install the appropriate PyTorch version for your hardware and Python environment if it is not included in the dependency file.
+
+### 04 / Train the Agent
+
+Run the actual training entry-point script from the repository:
+
+```bash
+python <TRAINING_SCRIPT>.py
+```
+
+### 05 / Evaluate the Agent
+
+Run the implemented evaluation or inference script:
+
+```bash
+python <EVALUATION_SCRIPT>.py
+```
+
+> The commands above are templates. Replace the placeholders with the actual script names and simulation setup instructions from the repository.
+
+---
+
+## `~/roadmap` — Future Improvements
+
+Potential future directions:
+
+- [ ] Add quantitative evaluation metrics and training curves.
+- [ ] Compare PPO against alternative reinforcement learning algorithms.
+- [ ] Evaluate robustness under different lighting and visual conditions.
+- [ ] Introduce domain randomization.
+- [ ] Investigate sim-to-real transfer.
+- [ ] Add detailed experiment tracking.
+- [ ] Evaluate generalization across a larger set of unseen tracks.
+- [ ] Investigate explainability of visual driving decisions.
+
+*These are proposed enhancements, not claims about existing functionality.*
+
+---
+
+## `~/engineering_learnings` — What This Project Explores
+
+This project brings together several important areas of intelligent systems engineering:
+
+**Deep Learning**
+- CNN-based visual feature extraction.
+- Neural network representation learning.
+- Actor-Critic network design.
+
+**Reinforcement Learning**
+- Policy-gradient methods.
+- PPO optimization.
+- Reward design.
+- Learning through environment interaction.
+
+**Autonomous Systems**
+- Visual perception.
+- Continuous vehicle control.
+- Navigation under changing track conditions.
+- Evaluation of learned behavior.
+
+---
+
+## `~/author` — Project Information
+
+**Developer:** Sarthak Tanpure  
+**Institution:** Pravara Rural Engineering College  
+**Degree:** B.E. Information Technology  
+**Project Domain:** Deep Reinforcement Learning · Computer Vision · Autonomous Systems
+
+<p align="center">
+  <a href="https://github.com/Sarthaktanpure">
+    <img src="https://img.shields.io/badge/GitHub-Sarthaktanpure-181717?style=for-the-badge&logo=github" />
+  </a>
+  <a href="https://www.linkedin.com/in/sarthak-tanpure-a74b5133a/">
+    <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin" />
+  </a>
+</p>
+
+<p align="center">
+  <b>From pixels to policies — teaching an agent to learn how to drive.</b>
+</p>
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0F172A,50:1E3A8A,100:EA580C&height=120&section=footer" width="100%" />
+</p>
